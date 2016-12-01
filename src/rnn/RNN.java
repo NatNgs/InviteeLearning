@@ -57,9 +57,9 @@ public class RNN implements Serializable {
                 for(String input : inputs) {
                     // input= "{\"id\":\"" + anInputNeuron + "\"}"
                     SettableNeuron sn = new SettableNeuron();
-                    String id = s.substring(
-                            s.indexOf("\"id\":\"")+"\"id\":\"".length(),
-                            s.lastIndexOf("\"}"));
+                    String id = input.substring(
+                            input.indexOf("\"id\":\"")+"\"id\":\"".length(),
+                            input.lastIndexOf("\"}"));
 
                     nids.put(id, sn);
                     list.add(sn);
@@ -143,34 +143,31 @@ public class RNN implements Serializable {
         }
 
         final List<List<Neuron>> set3 = new ArrayList<>();
-        for(int i=0; i<5; i++) {
-            for(int j=0; j<dataNb; j++) {
-                final List<Neuron> subset3 = new ArrayList<>();
-                set3.add(subset3);
+        for(int j=0; j<dataNb; j++) {
+            final List<Neuron> subset3 = new ArrayList<>();
+            set3.add(subset3);
 
-                Neuron nA = new Neuron(); subset3.add(nA);
-                Neuron nB = new Neuron(); subset3.add(nB);
-                Neuron nC = new Neuron(); subset3.add(nC);
-                Neuron nD = new Neuron(); subset3.add(nD);
-                Neuron nE = new Neuron(); subset3.add(nE);
-                Neuron nF = new Neuron(); subset3.add(nF);
+            Neuron nA = new Neuron(); subset3.add(nA);
+            Neuron nB = new Neuron(); subset3.add(nB);
+            Neuron nC = new Neuron(); subset3.add(nC);
+            Neuron nD = new Neuron(); subset3.add(nD);
+            Neuron nE = new Neuron(); subset3.add(nE);
+            Neuron nF = new Neuron(); subset3.add(nF);
 
-                nF.addParent(nD);
-                nF.addParent(nE);
-                nA.addParent(oneNeuron);
-                nB.addParent(oneNeuron);
-                nC.addParent(oneNeuron);
-                nD.addParent(oneNeuron);
-                nE.addParent(oneNeuron);
-                nF.addParent(oneNeuron);
+            nF.addParent(nD);
+            nF.addParent(nE);
+            nA.addParent(oneNeuron);
+            nB.addParent(oneNeuron);
+            nC.addParent(oneNeuron);
+            nD.addParent(oneNeuron);
+            nE.addParent(oneNeuron);
+            nF.addParent(oneNeuron);
 
-                for (Neuron n5 : set5) {
-                    n5.addParent(nA);
-                    n5.addParent(nB);
-                    n5.addParent(nC);
-                    n5.addParent(nF);
-                }
-
+            for (Neuron n5 : set5) {
+                n5.addParent(nA);
+                n5.addParent(nB);
+                n5.addParent(nC);
+                n5.addParent(nF);
             }
         }
 

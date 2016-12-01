@@ -33,6 +33,7 @@ public class Main {
             rnn = new RNN(500);
         }
 
+
         try {
             System.out.println("Saving RNN...");
             storeRNN();
@@ -135,12 +136,14 @@ public class Main {
         }
 
         double value = rnn.getOutputFor(dataTable);
+        double lastError = 1-value;
         System.out.printf("This was a "+(value>0?"good":"bad")+" cut ! (%5.2f %% good)\n", value*100);
         double error = 1;
-        for(int iter=0; iter<50 && error > 0; iter++) {
-            System.out.print("Iterating " + (iter + 1) + "/50");
+        for(int iter=0; iter<5 && error > 0; iter++) {
+            System.out.print("Iterating " + (iter + 1) + "/5");
             error = rnn.learn(dataTable, 1);
-            System.out.printf(", Error: %2.5f%%\n", error * 100);
+            System.out.printf(", Error: %2.5f%% (%+1.4e)\n", error * 100, error-lastError);
+            lastError = error;
         }
     }
 }

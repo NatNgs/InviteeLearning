@@ -20,11 +20,11 @@ class Neuron implements Serializable {
     /**
      * Ratio of data reinforcing, should be in ]0;1[ (0 AND 1 excluded)
      */
-    private static final double RATIO_NEURON = .9999;
+    private static final double RATIO_NEURON = .5;
     private static int idNumber = -1;
 
     private final Map<Neuron, Double> parents = new HashMap<>();
-    private boolean hasCalculated;
+    private boolean hasCalculated = false;
     private double computedValue;
     private final int id = (++idNumber);
 
@@ -33,25 +33,28 @@ class Neuron implements Serializable {
             addParent(parent, Math.random() * 2 - 1);
     }
     void addParent(Neuron newParent, double synapseValue) {
-        parents.put(newParent, limitValue(synapseValue));
+        if(newParent == null)
+            throw new RuntimeException();
+        parents.put(newParent, limit100(synapseValue));
     }
 
     double getOutput() throws ExecutionException, InterruptedException {
         if (!hasCalculated) {
             double total = 0;
 
-            Set<FutureTask<Double>> futures = new HashSet<>();
+            //Set<FutureTask<Double>> futures = new HashSet<>();
             for (final Map.Entry<Neuron, Double> entry : parents.entrySet()) {
-                FutureTask<Double> future = new FutureTask<>(() -> entry.getKey().getOutput() * entry.getValue());
+                /*FutureTask<Double> future = new FutureTask<>(() -> entry.getKey().getOutput() * entry.getValue());
                 futures.add(future);
                 //Thread t = new Thread(future); // TODO for now, doing all in parallelled thread
                 //t.run();
-                future.run();
+                future.run();*/
+                total += entry.getKey().getOutput() * entry.getValue();
             }
 
-            for (FutureTask<Double> futureTask : futures) {
+            /*for (FutureTask<Double> futureTask : futures) {
                 total += futureTask.get();
-            }
+            }*/
 
             hasCalculated = true;
             computedValue = activationFunction(total);
@@ -73,18 +76,26 @@ class Neuron implements Serializable {
             return -Math.log(1 / input - 1);
     }
 
-    private double limitValue(double input) {
-        if((input < 1e100 && input > 1e-100)
-            || (input > -1e100 && input < 1e-100))
+    private double limit100(double input) {
+        if((input < 100 && input > 1e-10)
+                || (input > -10 && input < 1e-10))
             return input;
         else if(input > 1)
-            return 1e100;
+            return 105-Math.random()*10; // add some random to avoid always redo the same thing
         else if(input < -1)
-            return -1e100;
+            return -105+Math.random()*10; // add some random to avoid always redo the same thing
         else if(input >= 0)
-            return 1e-100;
+            return 1e-10-Math.random()*1e-9; // add some random to avoid always redo the same thing
         else
-            return -1e-100;
+            return -1e-10+Math.random()*1e-9; // add some random to avoid always redo the same thing
+    }
+    private double limit01(double input) {
+        if(input >= 1)
+            return 1-1e-10-Math.random()*1e-9;  // add some random to avoid always redo the same thing
+        else if(input <= 0)
+            return 1e-10+Math.random()*1e-9;  // add some random to avoid always redo the same thing
+        else
+            return input;
     }
 
     private void prepareAlone() {
@@ -115,42 +126,45 @@ class Neuron implements Serializable {
 
     private void synapsesLearning(double neededValue) throws ExecutionException, InterruptedException {
         double output = getOutput();
-        double correctedOutput = neededValue * RATIO_SYNAPSE + output * (1 - RATIO_SYNAPSE);
-        double reversedCorrectedOutput = reverseFunction(correctedOutput);
+        double correctedOutput = limit01(neededValue * RATIO_SYNAPSE + output * (1 - RATIO_SYNAPSE));
+        double reversedCorrectedOutput = limit100(reverseFunction(correctedOutput));
 
         double synapsesSum = 0;
         for (double synapseValue : parents.values()) {
-            synapsesSum += limitValue(synapseValue * synapseValue); // limit value to avoid 0
+            synapsesSum += limit100(synapseValue * synapseValue); // limit value to avoid 0
         }
 
         for (Map.Entry<Neuron, Double> entry : parents.entrySet()) {
-            // do nothing for this synapse if it previous neuron value is 0
-            if(entry.getValue()==0)
+            if(entry.getKey().getOutput() == 0)
                 continue;
-            double value = reversedCorrectedOutput * (entry.getValue() * entry.getValue() + 1e-100) / synapsesSum;
+
+            // do nothing for this synapse if it previous neuron value is 0
+            double value = reversedCorrectedOutput * limit100(entry.getValue() * entry.getValue()) / synapsesSum;
 
             // correcting synapses values
             value /= entry.getKey().getOutput();
-            parents.put(entry.getKey(), limitValue(value));
+            parents.put(entry.getKey(), limit100(value));
         }
     }
 
     private void propagateLearning(double neededValue) throws ExecutionException, InterruptedException {
         double output = getOutput();
-        double correctedOutput = (neededValue - output) * RATIO_SYNAPSE + output;
-        double reversedCorrectedOutput = reverseFunction(correctedOutput);
+        double correctedOutput = limit01((neededValue - output) * RATIO_SYNAPSE + output);
+        double reversedCorrectedOutput = limit100(reverseFunction(correctedOutput));
 
         double neuronsSum = 0;
         for (Neuron n : parents.keySet()) {
-            neuronsSum += n.getOutput() + 1e-100; // +1e-100 to avoid 0
+            neuronsSum += limit01(n.getOutput());
         }
 
         for (Map.Entry<Neuron, Double> entry : parents.entrySet()) {
-            double value = reversedCorrectedOutput * (entry.getKey().getOutput() + 1e-100) / neuronsSum;
+            double value = reversedCorrectedOutput * limit01(entry.getKey().getOutput()) / neuronsSum;
 
             // make parents neurons learn
             value /= parents.get(entry.getKey());
-            entry.getKey().learn(value > 1 ? 1 : value < 0 ? 0 : value);
+            value = limit01(value);
+            if(value != entry.getKey().getOutput())
+                entry.getKey().learn(value);
         }
     }
 
