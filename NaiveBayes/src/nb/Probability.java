@@ -16,16 +16,16 @@ public class Probability {
 
     private final int ms; // 0..499
     private final int type; // 0=rotx, 1=roty, 2=rotz, 3=rel_accx, 4=rel_accy, 5=rel_accz
-    private final int rank; // min-max interval rank
+    private final int interval; // [min;max[ interval rank
 
     private int nbYes = 0;
     private int nbNo = 0;
     private final Set<String> consideredFiles = new HashSet<>();
 
-    public Probability(final int ms, final int type, final int rank) {
+    public Probability(final int ms, final int type, final int interval) {
         this.ms = ms;
         this.type = type;
-        this.rank = rank;
+        this.interval = interval;
     }
 
     public double getProbability(final boolean yes) {
@@ -53,25 +53,28 @@ public class Probability {
     /**
      * @return Minimum acceleration valid for this probability
      */
-    public double getMinAcc() {
-        return rank*(MAX_ACC-MIN_ACC)/INTERVAL_ACC +MIN_ACC;
+    public double getMin() {
+        if(type<=2) // is a rotation
+            return interval *(MAX_ROT-MIN_ROT)/INTERVAL_ROT +MIN_ROT;
+        else // is an acceleration
+            return interval *(MAX_ACC-MIN_ACC)/INTERVAL_ACC +MIN_ACC;
     }
     /**
      * @return First invalid acceleration after this probability interval
      */
-    public double getMaxAcc() {
-        return (rank+1)*(MAX_ACC-MIN_ACC)/INTERVAL_ACC +MIN_ACC;
+    public double getMax() {
+        if(type<=2) // is a rotation
+            return (interval +1)*(MAX_ROT-MIN_ROT)/INTERVAL_ROT +MIN_ROT;
+        else // is an acceleration
+            return (interval +1)*(MAX_ACC-MIN_ACC)/INTERVAL_ACC +MIN_ACC;
     }
-    /**
-     * @return Minimum rotation valid for this probability
-     */
-    public double getMinRot() {
-        return rank*(MAX_ROT-MIN_ROT)/INTERVAL_ROT +MIN_ROT;
-    }
-    /**
-     * @return First invalid rotation after this probability interval
-     */
-    public double getMaxRot() {
-        return (rank+1)*(MAX_ROT-MIN_ROT)/INTERVAL_ROT +MIN_ROT;
+
+    static int intervalIndexFor(int type, double value) {
+        if(type <= 2) {
+            return (int)((value - MIN_ROT)/(MAX_ROT - MIN_ROT));
+        }
+        else {
+            return (int)((value - MIN_ACC)/(MAX_ACC - MIN_ACC));
+        }
     }
 }
