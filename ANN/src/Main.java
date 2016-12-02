@@ -1,8 +1,6 @@
-import rnn.RNN;
+import ann.ANN;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -12,13 +10,13 @@ import java.util.zip.GZIPOutputStream;
  * Created by nathael on 29/11/16.
  */
 public class Main {
-    private static RNN rnn;
+    private static ANN ANN;
 
     public static void main(String[] args) {
-        // obtaining RNN save (if not, create new RNN)
+        // obtaining ANN save (if not, create new ANN)
         try {
-            rnn = getRNN();
-            System.out.println("RNN successfully loaded.");
+            ANN = getANN();
+            System.out.println("ANN successfully loaded.");
 
             try {
                 System.out.println("Computing...");
@@ -29,24 +27,24 @@ public class Main {
             }
         } catch(IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No understandable save found, creating a new RNN...");
-            rnn = new RNN(500);
+            System.out.println("No understandable save found, creating a new ANN...");
+            ANN = new ANN(500);
         }
 
 
         try {
-            System.out.println("Saving RNN...");
-            storeRNN();
-            System.out.println("RNN successfully saved.");
+            System.out.println("Saving ANN...");
+            storeANN();
+            System.out.println("ANN successfully saved.");
         } catch (IOException e) {
-            System.err.println("An exception occurs while saving RNN.");
+            System.err.println("An exception occurs while saving ANN.");
             e.printStackTrace();
         }
     }
 
-    private static RNN getRNN() throws IOException, ClassNotFoundException {
+    private static ANN getANN() throws IOException, ClassNotFoundException {
         //deserialize objects sarah and sam
-        FileInputStream fis = new FileInputStream("saves/rnn.save");
+        FileInputStream fis = new FileInputStream("saves/ann.save");
         GZIPInputStream gs = new GZIPInputStream(fis);
         ObjectInputStream ois = new ObjectInputStream(gs);
         List<String> lines = new ArrayList<>();
@@ -62,24 +60,24 @@ public class Main {
         fis.close();
 
         try {
-            rnn = RNN.load(lines);
+            ANN = ANN.load(lines);
         } catch(Exception e) {
             e.printStackTrace();
         }
 
-        return rnn;
+        return ANN;
     }
 
-    private static void storeRNN() throws IOException {
+    private static void storeANN() throws IOException {
         List<String> lines = new ArrayList<>();
-        //Files.write(Paths.get("res/rnn.save"),rnn.save());
+        //Files.write(Paths.get("res/ann.save"),ann.save());
 
         FileOutputStream fos = new
-                FileOutputStream("saves/rnn.save");
+                FileOutputStream("saves/ann.save");
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutputStream os = new ObjectOutputStream(gz);
 
-        List<String> save = rnn.save();
+        List<String> save = ANN.save();
         for(String s : save)
             os.writeObject(s);
 
@@ -135,13 +133,13 @@ public class Main {
             //System.out.println();
         }
 
-        double value = rnn.getOutputFor(dataTable);
+        double value = ANN.getOutputFor(dataTable);
         double lastError = 1-value;
-        System.out.printf("This was a "+(value>0?"good":"bad")+" cut ! (%5.2f %% good)\n", value*100);
+        System.out.printf("This was a "+(value>0?"good":"bad")+" cut ! (%5.2f %% error)\n", lastError*100);
         double error = 1;
         for(int iter=0; iter<5 && error > 0; iter++) {
             System.out.print("Iterating " + (iter + 1) + "/5");
-            error = rnn.learn(dataTable, 1);
+            error = ANN.learn(dataTable, 1);
             System.out.printf(", Error: %2.5f%% (%+1.4e)\n", error * 100, error-lastError);
             lastError = error;
         }

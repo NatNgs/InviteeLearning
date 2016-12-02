@@ -1,4 +1,4 @@
-package rnn;
+package ann;
 
 import java.util.concurrent.ExecutionException;
 

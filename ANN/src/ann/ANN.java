@@ -1,4 +1,4 @@
-package rnn;
+package ann;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -8,11 +8,11 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by nathael on 29/11/16.
  */
-public class RNN implements Serializable {
+public class ANN implements Serializable {
     private final List<List<SettableNeuron>> inputNeurons = new ArrayList<>();
     private final Neuron lastNeuron;
 
-    private RNN(List<String> save) {
+    private ANN(List<String> save) {
         Map<String, Neuron> nids = new HashMap<>();
 
         // fixed neurons
@@ -119,7 +119,7 @@ public class RNN implements Serializable {
             }
         }
     }
-    public RNN(int dataNb) {
+    public ANN(int dataNb) {
         lastNeuron = new Neuron();
         SettableNeuron oneNeuron = new SettableNeuron();
         oneNeuron.setValue(1);
@@ -286,7 +286,7 @@ public class RNN implements Serializable {
         return res;
     }
 
-    public static RNN load(List<String> save) {
-       return new RNN(save);
+    public static ANN load(List<String> save) {
+       return new ANN(save);
     }
 }
