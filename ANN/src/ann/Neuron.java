@@ -13,11 +13,11 @@ class Neuron implements Serializable {
      * Learning ratio, should be in ]0;1[ (0 AND 1 excluded)
      * how many error has to be corrected at each learning
      */
-    private static final double RATIO_SYNAPSE = .1;
+    private static final double RATIO_SYNAPSE = .001;
     /**
      * Ratio of data reinforcing, should be in ]0;1[ (0 AND 1 excluded)
      */
-    private static final double RATIO_NEURON = .5;
+    private static final double RATIO_NEURON = .001;
     private static int idNumber = -1;
 
     private final Map<Neuron, Double> parents = new HashMap<>();
@@ -74,23 +74,23 @@ class Neuron implements Serializable {
     }
 
     private double limit100(double input) {
-        if((input < 100 && input > 1e-10)
-                || (input > -10 && input < 1e-10))
+        if((input < 1e10 && input > 1e-10)
+                || (input > -1e10 && input < 1e-10))
             return input;
         else if(input > 1)
-            return 105-Math.random()*10; // add some random to avoid always redo the same thing
+            return 1e10;
         else if(input < -1)
-            return -105+Math.random()*10; // add some random to avoid always redo the same thing
+            return -1e10;
         else if(input >= 0)
-            return 1e-10-Math.random()*1e-9; // add some random to avoid always redo the same thing
+            return 1e-10;
         else
-            return -1e-10+Math.random()*1e-9; // add some random to avoid always redo the same thing
+            return -1e-10;
     }
     private double limit01(double input) {
         if(input >= 1)
-            return 1-1e-10-Math.random()*1e-9;  // add some random to avoid always redo the same thing
+            return 1-1e-10;
         else if(input <= 0)
-            return 1e-10+Math.random()*1e-9;  // add some random to avoid always redo the same thing
+            return 1e-10;
         else
             return input;
     }
@@ -123,7 +123,7 @@ class Neuron implements Serializable {
 
     private void synapsesLearning(double neededValue) throws ExecutionException, InterruptedException {
         double output = getOutput();
-        double correctedOutput = limit01(neededValue * RATIO_SYNAPSE + output * (1 - RATIO_SYNAPSE));
+        double correctedOutput = limit01((neededValue - output) * RATIO_SYNAPSE+ output);
         double reversedCorrectedOutput = limit100(reverseFunction(correctedOutput));
 
         double synapsesSum = 0;
@@ -146,7 +146,7 @@ class Neuron implements Serializable {
 
     private void propagateLearning(double neededValue) throws ExecutionException, InterruptedException {
         double output = getOutput();
-        double correctedOutput = limit01((neededValue - output) * RATIO_SYNAPSE + output);
+        double correctedOutput = limit01((neededValue - output) * RATIO_NEURON + output);
         double reversedCorrectedOutput = limit100(reverseFunction(correctedOutput));
 
         double neuronsSum = 0;

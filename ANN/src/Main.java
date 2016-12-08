@@ -14,23 +14,23 @@ public class Main {
 
     public static void main(String[] args) {
         // obtaining ANN save (if not, create new ANN)
-        try {
+        /*try {
             ANN = getANN();
             System.out.println("ANN successfully loaded.");
 
-            try {
-                System.out.println("Computing...");
-                compute();
-            } catch (Exception e) {
-                System.err.println("An exception occurs while computing result.");
-                e.printStackTrace();
-            }
         } catch(IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No understandable save found, creating a new ANN...");
+            System.out.println("No understandable save found, creating a new ANN...");*/
             ANN = new ANN(500);
-        }
+        //}
 
+        try {
+            System.out.println("Computing...");
+            compute();
+        } catch (Exception e) {
+            System.err.println("An exception occurs while computing result.");
+            e.printStackTrace();
+        }
 
         try {
             System.out.println("Saving ANN...");
@@ -73,7 +73,7 @@ public class Main {
         //Files.write(Paths.get("res/ann.save"),ann.save());
 
         FileOutputStream fos = new
-                FileOutputStream("saves/ann.save");
+                FileOutputStream("ANN/saves/ann.save");
         GZIPOutputStream gz = new GZIPOutputStream(fos);
         ObjectOutputStream os = new ObjectOutputStream(gz);
 
@@ -89,7 +89,7 @@ public class Main {
 
     private static void compute() throws Exception {
         //Ouverture du fichier
-        FileReader input = new FileReader("res/input.txt");
+        FileReader input = new FileReader("ANN/res/input.txt");
         BufferedReader bufRead = new BufferedReader(input);
         String line = bufRead.readLine(); // first line containing data names, ignoring it
 
@@ -135,12 +135,12 @@ public class Main {
 
         double value = ANN.getOutputFor(dataTable);
         double lastError = 1-value;
-        System.out.printf("This was a "+(value>0?"good":"bad")+" cut ! (%5.2f %% error)\n", lastError*100);
+        System.out.printf("Algorithm think this was a "+(value>0?"good":"bad")+" cut ! (%5.2f %% error)\n", lastError*100);
         double error = 1;
-        for(int iter=0; iter<5 && error > 0; iter++) {
-            System.out.print("Iterating " + (iter + 1) + "/5");
+        for(int iter=0; iter<100 && error > 0; iter++) {
+            System.out.print("Iterating " + (iter + 1));
             error = ANN.learn(dataTable, 1);
-            System.out.printf(", Error: %2.5f%% (%+1.4e)\n", error * 100, error-lastError);
+            System.out.printf(", Error: %2.5f%% ( %+1.4e )\n", error * 100, error-lastError);
             lastError = error;
         }
     }
