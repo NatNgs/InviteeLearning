@@ -37,7 +37,7 @@ public class MysqlConnecter {
 	}
 	
 	/**
-	* Build connexion to Mysql server
+	* insert a line of data into table 'probabilities' and table 'datafiles' of Mysql
 	* @param isGood: 0 means bad cut, 1 means good cut
 	**/
 	public void sendDataToMysql(String fileName, int isGood, int time_ms, int type, double minimum, double proba_yes, double proba_no) {
@@ -74,7 +74,7 @@ public class MysqlConnecter {
 	}
 	
 	/**
-	* Build connexion to Mysql server
+	* Retrieve the probability of an interval from table 'probabilities' of Mysql
 	* @param getYes: true means getYes, false means getNo, (time_ms, type, minimum) is the composite primary key for table 'probabilities'
 	* @return the probability of good cut/bad cut (0.00-1.00)
 	**/
