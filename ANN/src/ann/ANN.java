@@ -9,8 +9,10 @@ import java.util.concurrent.ExecutionException;
  * Created by nathael on 29/11/16.
  */
 public class ANN implements Serializable {
+    private final int lastNeuronsNb;
+
     private final List<List<SettableNeuron>> inputNeurons = new ArrayList<>();
-    private final Neuron lastNeuron;
+    private final List<Neuron> lastNeuron = new ArrayList<>();
 
     private ANN(List<String> save) {
         Map<String, Neuron> nids = new HashMap<>();
@@ -107,8 +109,13 @@ public class ANN implements Serializable {
         }
 
         // lastNeuron
-        line = save.get(0).substring("{\"last\":[\"".length(), save.get(0).length()-"\"],".length());
-        lastNeuron = nids.get(line);
+        line = save.get(0).substring("{\"last\":[".length(), save.get(0).length()-"],".length());
+        {
+            String[] inputLines = line.split(",");
+            for (String inputLine : inputLines)
+                lastNeuron.add(nids.get(inputLine));
+        }
+        lastNeuronsNb = lastNeuron.size();
 
         // Synapses
         // Map<Neuron, Map<String, Double>> links = new HashMap<>();
@@ -119,8 +126,12 @@ public class ANN implements Serializable {
             }
         }
     }
-    public ANN(int dataNb) {
-        lastNeuron = new Neuron();
+    public ANN(int dataNb, int lastNeuronNb) {
+        lastNeuronsNb = lastNeuronNb;
+        for(int i=0; i<lastNeuronNb; i++)
+            lastNeuron.add(new Neuron());
+
+
         SettableNeuron oneNeuron = new SettableNeuron();
         oneNeuron.setValue(1);
 
@@ -128,7 +139,7 @@ public class ANN implements Serializable {
         for(int i=0; i<20; i++) {
             Neuron n6 = new Neuron();
             set6.add(n6);
-            lastNeuron.addParent(n6);
+            lastNeuron.forEach(ln -> ln.addParent(n6));
             n6.addParent(oneNeuron);
         }
 
@@ -136,9 +147,7 @@ public class ANN implements Serializable {
         for(int i=0; i<20; i++) {
             Neuron n5 = new Neuron();
             set5.add(n5);
-            for(Neuron n6 : set6) {
-                n6.addParent(n5);
-            }
+            set6.forEach(n6 -> n6.addParent(n5));
             n5.addParent(oneNeuron);
         }
 
@@ -175,9 +184,7 @@ public class ANN implements Serializable {
         for(int i=0; i<9; i++) {
             Neuron n2 = new Neuron();
             set2.add(n2);
-            for (Neuron n5 : set5) {
-                n5.addParent(n2);
-            }
+            set5.forEach(n5 -> n5.addParent(n2));
             n2.addParent(oneNeuron);
         }
 
@@ -189,7 +196,6 @@ public class ANN implements Serializable {
             for(int j=0; j<9; j++) {
                 SettableNeuron nj = new SettableNeuron();
                 nLine.add(nj);
-
                 set2.get(j).addParent(nj);
             }
 
@@ -206,24 +212,42 @@ public class ANN implements Serializable {
         }
     }
 
-    public double getOutputFor(float[][] dataTable) throws ExecutionException, InterruptedException, IOException {
-        lastNeuron.prepareAll();
+    public double getLastComputedError(double[] neededValue) throws ExecutionException, InterruptedException {
+        double distance = 0;
+        for(int i=0; i<lastNeuronsNb; i++) {
+            double tmp = (lastNeuron.get(i).getOutput() - neededValue[i]); // between -1 & 1
+            distance += tmp*tmp; // between 0 & 1
+        }
+
+        return distance / lastNeuronsNb; // between 0 & 1
+    }
+    public double[] getOutputFor(float[][] dataTable) throws ExecutionException, InterruptedException, IOException {
+        lastNeuron.forEach(Neuron::prepareAll);
         setInputNeurons(dataTable);
 
-        return lastNeuron.getOutput();
+        double res[] = new double[lastNeuronsNb];
+        for(int i=0; i<lastNeuronsNb; i++) {
+            res[i] = lastNeuron.get(i).getOutput();
+        }
+
+        return res;
     }
 
-    public double learn(float[][] dataTable, double neededValue) throws ExecutionException, InterruptedException, IOException {
-        lastNeuron.prepareAll();
+    /**
+     * @param dataTable All the data inputs for ANN
+     * @param neededValue The needed value of ANN
+     * @return Number between 0 and 1, corresponding to the percentage of efficiency of the ANN after learning
+     */
+    public double learn(float[][] dataTable, double[] neededValue) throws ExecutionException, InterruptedException, IOException {
+        lastNeuron.forEach(Neuron::prepareAll);
         setInputNeurons(dataTable);
 
-        lastNeuron.learn(neededValue);
+        for(int i=0; i<lastNeuronsNb; i++)
+            lastNeuron.get(i).learn(neededValue[i]);
 
         // compute distance
-        lastNeuron.prepareAll();
-        double distance = (lastNeuron.getOutput() - neededValue); // between -1 & 1
-
-        return distance*distance; // between 0 & 1
+        lastNeuron.forEach(Neuron::prepareAll);
+        return getLastComputedError(neededValue);
     }
 
     private void setInputNeurons(float[][] dataTable) throws IOException {
@@ -239,7 +263,7 @@ public class ANN implements Serializable {
         Map<Neuron, String> ids = new HashMap<>();
 
         Stack<Neuron> stack = new Stack<>();
-        stack.push(lastNeuron);
+        lastNeuron.forEach(stack::push);
         Set<SettableNeuron> settableNeurons = new HashSet<>();
 
         Set<String> neurons = new HashSet<>();
@@ -279,7 +303,7 @@ public class ANN implements Serializable {
         }catch (InterruptedException | ExecutionException ignored) {}
 
         List<String> res = new ArrayList<>();
-        res.add("{\"last\":[\""+lastNeuron+"\"],");
+        res.add("{\"last\":"+lastNeuron+",");
         res.add("\"fixed\":[" + String.join(";", fixedNeurons) + "],");
         res.add("\"inputs\":["+String.join(";",inputs)+"],");
         res.add("\"neurons\":[" + String.join(";",neurons) + "]}");

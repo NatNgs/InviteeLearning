@@ -2,6 +2,7 @@ import ann.ANN;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -14,15 +15,16 @@ public class Main {
 
     public static void main(String[] args) {
         // obtaining ANN save (if not, create new ANN)
-        /*try {
+        try {
             ANN = getANN();
             System.out.println("ANN successfully loaded.");
 
-        } catch(IOException | ClassNotFoundException e) {
+        } catch(Exception e) {
             e.printStackTrace();
-            System.out.println("No understandable save found, creating a new ANN...");*/
-            ANN = new ANN(500);
-        //}
+            System.out.println("No understandable save found, creating a new ANN...");
+            ANN = new ANN(500, 5);
+            //System.exit(0);
+        }
 
         try {
             System.out.println("Computing...");
@@ -44,14 +46,14 @@ public class Main {
 
     private static ANN getANN() throws IOException, ClassNotFoundException {
         //deserialize objects sarah and sam
-        FileInputStream fis = new FileInputStream("saves/ann.save");
+        FileInputStream fis = new FileInputStream("ANN/saves/ann.save");
         GZIPInputStream gs = new GZIPInputStream(fis);
         ObjectInputStream ois = new ObjectInputStream(gs);
         List<String> lines = new ArrayList<>();
         String o = null;
         try {
             while ((o = (String) ois.readObject()) != null) {
-                lines.add(o);
+                lines.add(o.replaceAll(" ",""));
             }
         } catch (EOFException ignored) {}
 
@@ -69,9 +71,6 @@ public class Main {
     }
 
     private static void storeANN() throws IOException {
-        List<String> lines = new ArrayList<>();
-        //Files.write(Paths.get("res/ann.save"),ann.save());
-
         FileOutputStream fos = new
                 FileOutputStream("ANN/saves/ann.save");
         GZIPOutputStream gz = new GZIPOutputStream(fos);
@@ -88,8 +87,35 @@ public class Main {
     }
 
     private static void compute() throws Exception {
+        // Get file list
+        String[] files = new File("ANN/res/").list((file, s) -> s.matches(".*\\.[01234]\\.invitee"));
+
+        float[][] dataTable = readFile("ANN/res/" + files[(int)(Math.random()*files.length)]);
+
+        double[] values = ANN.getOutputFor(dataTable);
+        double lastError = ANN.getLastComputedError(new double[]{0,0,0,1,0});
+
+        int rk = 0;
+        for(int i=1; i<values.length; i++) {
+            if(values[i] > values[rk])
+                rk = i;
+        }
+
+        double error = 1;
+        for(int iter=0; iter<10 && error > 0; iter++) {
+            String filename = files[(int)(Math.random()*files.length)];
+            int level = Integer.parseInt(filename.substring(filename.length()-"x.invitee".length(), filename.length()-".invitee".length()));
+            System.out.print("Iterating " + (iter + 1)+" with "+filename);
+            dataTable = readFile("ANN/res/" + filename);
+            error = ANN.learn(dataTable, new double[]{level==0?1:0,level==1?1:0,level==2?1:0,level==3?1:0,level==4?1:0});
+            System.out.printf(", Error: %2.5f%% ( %+1.4e )\n", error * 100, error-lastError);
+            lastError = error;
+        }
+    }
+
+    private static float[][] readFile(String filePath) throws IOException {
         //Ouverture du fichier
-        FileReader input = new FileReader("ANN/res/input.txt");
+        FileReader input = new FileReader(filePath);
         BufferedReader bufRead = new BufferedReader(input);
         String line = bufRead.readLine(); // first line containing data names, ignoring it
 
@@ -133,15 +159,6 @@ public class Main {
             //System.out.println();
         }
 
-        double value = ANN.getOutputFor(dataTable);
-        double lastError = 1-value;
-        System.out.printf("Algorithm think this was a "+(value>0?"good":"bad")+" cut ! (%5.2f %% error)\n", lastError*100);
-        double error = 1;
-        for(int iter=0; iter<100 && error > 0; iter++) {
-            System.out.print("Iterating " + (iter + 1));
-            error = ANN.learn(dataTable, 1);
-            System.out.printf(", Error: %2.5f%% ( %+1.4e )\n", error * 100, error-lastError);
-            lastError = error;
-        }
+        return dataTable;
     }
 }
