@@ -76,32 +76,27 @@ public class DataFileReader {
 	* Retrieve all data from a file which is 500*6, be careful about time_ms which is also float type
 	* @return ArrayList<{tims_ms, rotX, rotY, rotZ, accX, accY, accZ}>
 	**/
-	public ArrayList<float[]> retrieveDataFromFile(String path_file) throws IOException {
+	public double[][] retrieveDataFromFile(String path_file) throws IOException {
 		
-		ArrayList<float[]> list_data = new ArrayList<>();
+		double[][] list_data = new double[500][6];
 		
 		FileReader input = new FileReader(path_file);
         BufferedReader bufRead = new BufferedReader(input);
         String myLine = null;
-        int indexLine = 1;
+        int indexLine = 0;
 
         myLine = bufRead.readLine();//première ligne de consigne
         while ( (myLine = bufRead.readLine()) != null)
         {
             String[] data_thisLine = myLine.split(";");
 
-            float[] tmp = new float[7];
-            /* 0: time_ms */
-            tmp[0] = (float) indexLine;
-            /* 1-6: rotations of x,y,z and accelerations of x,y,z */
-            tmp[1] = Float.parseFloat(data_thisLine[0]);
-            tmp[2] = Float.parseFloat(data_thisLine[1]);
-            tmp[3] = Float.parseFloat(data_thisLine[2]);
-            tmp[4] = Float.parseFloat(data_thisLine[3]);
-            tmp[5] = Float.parseFloat(data_thisLine[4]);
-            tmp[6] = Float.parseFloat(data_thisLine[5]);
-
-            list_data.add(tmp);
+            /* 0-5: rotations of x,y,z and accelerations of x,y,z */
+            list_data[indexLine][0] = Double.parseDouble(data_thisLine[0]);
+            list_data[indexLine][1] = Double.parseDouble(data_thisLine[1]);
+            list_data[indexLine][2] = Double.parseDouble(data_thisLine[2]);
+            list_data[indexLine][3] = Double.parseDouble(data_thisLine[3]);
+            list_data[indexLine][4] = Double.parseDouble(data_thisLine[4]);
+            list_data[indexLine][5] = Double.parseDouble(data_thisLine[5]);
             
             indexLine++;
         }
