@@ -14,7 +14,7 @@ public class TestFileWithMysql {
 		DataFileReader dfReader = new DataFileReader();
 		String fileName = dfReader.retrieveFileName(path_file);
 		int isGood = dfReader.retrieveIsGoodFromFile(path_file);
-		ArrayList<float[]> dataList = dfReader.retrieveDataFromFile(path_file);
+		double[][] dataList = dfReader.retrieveDataFromFile(path_file);
 		
 		System.out.println("FileName: "+fileName);
 		System.out.println("IsGood: "+isGood);
