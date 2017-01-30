@@ -11,7 +11,8 @@ def main():
 	#create and train the random forest
 	#multi-core CPUs can use: rf = RandomForestClassifier(n_estimators=100, n_jobs=2)
 	rf = RandomForestClassifier(n_estimators=100)
-	rf.fit(train, target)
+	rf.fit(train, target) # Learning
+
 
 	savetxt('Data/submission1.csv', rf.predict(test), delimiter=';', fmt='%f')
 	savetxt('Data/submission2.csv', rf.predict(test), delimiter=';', fmt='%f')
