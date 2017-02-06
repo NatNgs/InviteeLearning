@@ -1,16 +1,13 @@
-import java.io.*;
-import java.util.*;
-
 /**
  * Created by nathael on 30/01/17.
  */
 public class Feeder {
 
-    public static void main(String[] args) throws InterruptedException {
+ /*   public static void main(String[] args) throws InterruptedException {
         Feeder f = new Feeder();
 
         List<String> filenames = new ArrayList<>();
-        File[] files = new File("../logs tronqués/").listFiles();
+        File[] files = new File("../coupes5dec/").listFiles();
         for(File file : files)
             try {
                 filenames.add(file.getCanonicalPath());
@@ -28,8 +25,9 @@ public class Feeder {
 
         File fDest = new File(fileWhereToWrite);
         try {
-            if(fDest.exists())
-                fDest.delete();
+            if(fDest.exists()) {
+            // nada
+            }
             if (!fDest.createNewFile()) {
                 System.err.println(fDest.getAbsolutePath() + ": cannot create file.");
                 return;
@@ -41,7 +39,7 @@ public class Feeder {
             return;
         }
 
-        for(String fileName : filenames) {
+        files: for(String fileName : filenames) {
             int grade = -1;
 
             if(fileName.matches(".*[^0-3]")) {
@@ -49,11 +47,13 @@ public class Feeder {
             }
             if(grade < 0 || grade > 3) {
                 System.err.println("Cannot find cut grade in file name: "+fileName);
-                Thread.sleep(100);
-                System.out.print("Please enter a Grade [0-3]: ");
+                Thread.sleep(500);
+                System.out.print("Please enter a Grade [0-3 or 'pass']: ");
                 Scanner sc = new Scanner(System.in);
                 while(true) {
                     String line = sc.nextLine();
+                    if(line.equals("pass"))
+                        continue files;
                     int val = Integer.parseInt(line);
                     if (val >= 0 && val <= 3) {
                         grade = val;
@@ -64,19 +64,22 @@ public class Feeder {
 
             File f = new File(fileName);
             System.out.println("Trying with file " + f.getAbsolutePath());
-            Thread.sleep(100);
+            Thread.sleep(500);
 
             try {
                 FileReader fr = new FileReader(f);
                 String strLine = toStringLine(grade, scanData(new Scanner(fr)));
-                alldata.add(strLine);
+                if(strLine != null)
+                    alldata.add(strLine);
 
                 fr.close();
             } catch (FileNotFoundException e) {
                 System.err.println("Impossible to create FileReader for " + fileName);
                 e.printStackTrace();
+                Thread.sleep(500);
             } catch (IOException e) {
                 e.printStackTrace();
+                Thread.sleep(500);
             }
         }
 
@@ -84,10 +87,38 @@ public class Feeder {
     }
 
     private String toStringLine(int grade, List<Map<String, Integer>> data) {
+
+        int minTime = Integer.MAX_VALUE;
+        int maxTime = -1;
+
+        for(Map<String,Integer> line : data) {
+            if(minTime > line.get("timer"))
+                minTime = line.get("timer");
+
+            if(maxTime < line.get("timer"))
+                maxTime = line.get("timer");
+        }
+
+        int choiceMin;
+        do {
+            try {
+                System.out.print("Min time (ms between " + minTime + " and " + maxTime + "): ");
+                choiceMin = Integer.parseInt(new Scanner(System.in).nextLine());
+
+                if(choiceMin == -1) {
+                    return null;
+                }
+            } catch(NumberFormatException ignored){ choiceMin = -1; }
+        } while(choiceMin < minTime && choiceMin >= maxTime && choiceMin >= 0);
+
         // "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
+        int valuesGet = 0;
         StringBuilder builder = new StringBuilder();
         builder.append(grade);
         for(Map<String, Integer> line : data) {
+            if(line.get("timer") < minTime)
+                continue;
+
             builder .append(";")
                     .append(line.get("rotX"))
                     .append(";")
@@ -100,10 +131,19 @@ public class Feeder {
                     .append(line.get("accY"))
                     .append(";")
                     .append(line.get("accZ"));
+
+            valuesGet ++;
+            if(valuesGet >= NBVALUES) {
+                maxTime = line.get("timer");
+                break;
+            }
         }
+
+        System.out.println("Max time: "+maxTime);
 
         return builder.toString();
     }
+
 
     private void writeToFile(File fDest, List<String> alldata) {
         try {
@@ -111,7 +151,7 @@ public class Feeder {
 
             // "class;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
             fw.write("class");
-            for (int i = 0; i < 500; i++) {
+            for (int i = 0; i < NBVALUES; i++) {
                 fw.write(";rotX"+i);
                 fw.write(";rotY"+i);
                 fw.write(";rotZ"+i);
@@ -157,5 +197,5 @@ public class Feeder {
 
         return data;
     }
-
+*/
 }
