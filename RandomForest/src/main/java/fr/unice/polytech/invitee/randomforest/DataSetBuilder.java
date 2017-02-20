@@ -2,12 +2,15 @@ package fr.unice.polytech.invitee.randomforest;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Stack;
 
 /**
  * Created by nathael on 20/02/17.
  */
-public class DatasetBuilder {
+public class DataSetBuilder {
 	private static final int PRECISION_IN_FILE = 100_000;
 	private static final DataType[] TYPES_IN_FILE =
 			// timer,roll,pitch,yaw,accel_x,accel_y,accel_z,posx,posy,posz
@@ -30,30 +33,27 @@ public class DatasetBuilder {
 	private File cur_file = null;
 	private Scanner cur_fileScanner = null;
 	private final List<DataElement> cur_dataElementList = new ArrayList<>();
-	private final Map<DataType, Double> cur_sum = new HashMap<>();
 
-	public void reset() {
+	private DataSetBuilder() {}
+
+	private void reset() {
 		if(cur_fileScanner != null) {
 			cur_fileScanner.close();
 			cur_fileScanner = null;
 		}
 
-		cur_sum.clear();
 		cur_dataElementList.clear();
 		isInitialised = false;
 	}
 
-	public void setFile(File f) throws FileNotFoundException {
+	void setFile(File f) throws FileNotFoundException {
 		this.cur_fileScanner = new Scanner(f);
 	}
 
-	public void initImport() throws CannotInitializeException {
+	void initImport() throws CannotInitializeException {
 		try {
 			reset();
 			cur_fileScanner = new Scanner(cur_file);
-			cur_sum.put(DataType.AccX, 0.);
-			cur_sum.put(DataType.AccY, 0.);
-			cur_sum.put(DataType.AccZ, 0.);
 			while (cur_dataElementList.size() < MAX_SET_SIZE && hasNext())
 				importNext();
 
@@ -66,18 +66,15 @@ public class DatasetBuilder {
 		isInitialised = true;
 	}
 
-	public boolean hasNext() {
+	boolean hasNext() {
 		if(!isInitialised)
 			throw new NotInitializedException();
 
 		return cur_fileScanner.hasNextLine();
 	}
-	public DataSet importNext() {
-		try {
-			initImport();
-		} catch (CannotInitializeException cie) {
-			throw new NotInitializedException(cie);
-		}
+	DataSet importNext() {
+		if(!isInitialised)
+			throw new NotInitializedException();
 
 		while(true) {
 			if(!cur_fileScanner.hasNextLine())
@@ -90,12 +87,10 @@ public class DatasetBuilder {
 				DataElement element = new DataElement(TYPES_IN_FILE, tab, PRECISION_IN_FILE);
 
 				cur_dataElementList.add(element);
+
 				if (cur_dataElementList.size() >= MAX_SET_SIZE) {
-
-
-
 					DataSet ret = new DataSet(cur_dataElementList);
-					cur_dataElementList.remove(0);
+					DataElement removed = cur_dataElementList.remove(0);
 					return ret;
 				}
 			} catch (NumberFormatException ignored) {}
@@ -106,9 +101,6 @@ public class DatasetBuilder {
 		NotInitializedException() {
 			super("Builder is not initialised ! Call initImport() first.");
 		}
-		NotInitializedException(CannotInitializeException cie) {
-			super("Builder was not initialised, tried to initialize but failed.", cie);
-		}
 	}
 	class CannotInitializeException extends Exception{
 		CannotInitializeException() {
@@ -117,5 +109,31 @@ public class DatasetBuilder {
 		CannotInitializeException(Exception e) {
 			super("Cannot init import", e);
 		}
+	}
+
+	public static DataSet extract(File f) throws FileNotFoundException {
+		DataSetBuilder dsb = new DataSetBuilder();
+		DataSet bestDataSet = dsb.importNext();
+
+		try {
+			dsb.setFile(f);
+			dsb.initImport();
+
+			int bestDataSetAmplitude = bestDataSet.getAmplitude();
+
+			while(dsb.hasNext()) {
+				DataSet nextDataSet = dsb.importNext();
+
+				int nextDataSetAmplitude = nextDataSet.getAmplitude();
+				if(nextDataSetAmplitude > bestDataSetAmplitude) {
+					bestDataSet = nextDataSet;
+					bestDataSetAmplitude = nextDataSetAmplitude;
+				}
+			}
+		} catch (DataSetBuilder.CannotInitializeException e) {
+			return null;
+		}
+
+		return bestDataSet;
 	}
 }
