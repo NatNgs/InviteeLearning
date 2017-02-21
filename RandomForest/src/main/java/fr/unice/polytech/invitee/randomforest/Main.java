@@ -1,6 +1,7 @@
 package fr.unice.polytech.invitee.randomforest;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -47,11 +48,21 @@ public class Main {
 		}
 
 		File outF = new File(outputFile);
-		FileWriter writer = null;
+		OutputStreamWriter writer = null;
+
 		try {
 			System.out.println("Output file: " + outF.getCanonicalPath());
 			System.out.println("");
-			writer = new FileWriter(outF);
+			if(_continue){
+				writer = new OutputStreamWriter(
+						new FileOutputStream(outputFile),
+						Charset.forName("UTF-8").newEncoder()
+				);
+			}
+			else{
+				writer = createFile(outF);
+			}
+
 		} catch (IOException e) {
 			System.out.print("Output file: " + outF.getAbsolutePath());
 			System.err.println("Cannot open outputFile: "+e.getMessage());
@@ -95,19 +106,22 @@ public class Main {
 
 				File inF = new File(inputName);
 				Set<File> subFiles = listSubFiles(inF);
+				System.out.print("Grade: ");
+				int grade = Integer.parseInt(sc.nextLine());
+
+				if (grade < 0 || grade > 3) {
+					System.err.println("Grade not in 0-3 range (" + grade + "), aborting this inputFile");
+					continue;
+				}
+
 
 				for(File subFile : subFiles) {
+
 					try {
 						System.out.println("Treating "+subFile.getCanonicalPath());
-						System.out.print("Grade: ");
-						int grade = Integer.parseInt(sc.nextLine());
 
-						if (grade < 0 || grade > 3) {
-							System.err.println("Grade not in 0-3 range (" + grade + "), aborting this inputFile");
-							continue;
-						}
 
-						feedFile(writer, inF, grade);
+						feedFile(writer, subFile, grade);
 					} catch (NumberFormatException nfe) {
 						System.err.println("Grade is not an integer, aborting this inputFile (" + nfe.getMessage() + ")");
 					} catch (IOException e) {
@@ -147,11 +161,15 @@ public class Main {
 		return fileSet;
 	}
 
-	private static void feedFile(FileWriter outF, File inF, int grade) {
+	private static void feedFile(Writer outF, File inF, int grade) {
 		try {
+
 			DataSet dataSet = DataSetBuilder.extract(inF);
-			if (dataSet == null)
+			if (dataSet == null){
+				System.out.println("J'entre dans le if =(");
 				return;
+			}
+
 
 			// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
 			outF.write(grade);
@@ -193,12 +211,17 @@ public class Main {
 	}
 
 
-	private static FileWriter createFile(File f) throws IOException {
+	private static OutputStreamWriter createFile(File f) throws IOException {
 		if(f.exists())
 			f.delete();
 		f.createNewFile();
 
-		FileWriter fw = new FileWriter(f);
+		OutputStreamWriter fw;
+
+		fw = new OutputStreamWriter(
+				new FileOutputStream(f),
+				Charset.forName("UTF-8").newEncoder()
+		);
 
 		// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
 		fw.write("grade");
