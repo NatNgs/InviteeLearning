@@ -30,8 +30,8 @@ public class Main {
 			outputFile = args[0];
 			if(outputFile.startsWith("-c")) {
 				_continue = true;
-				if(args.length > 0)
-					outputFile = args[0];
+				if(args.length > 1)
+					outputFile = args[1];
 				else {
 					System.err.println("No output file defined.");
 					return;
@@ -63,14 +63,10 @@ public class Main {
 			while(args.length > argi+1) {
 				String inputFile = args[argi];
 				File inF = new File(inputFile);
-				Set<File> subFiles = listSubFiles(inF);
 
 				int grade = Integer.parseInt(args[++argi]);
-				if (grade < 0 || grade > 3) {
-					System.err.println("Grade not in 0-3 range (" + grade + "), aborting this inputFile");
-					continue;
-				}
 
+				Set<File> subFiles = listSubFiles(inF);
 				for(File subFile : subFiles) {
 					try {
 						System.out.println("Input file: " + subFile.getCanonicalPath());
@@ -78,10 +74,15 @@ public class Main {
 						System.out.println("Input file*: " + subFile.getAbsolutePath());
 					}
 					System.out.println("Grade: " + grade);
+					if (grade < 0 || grade > 3) {
+						System.err.println("Grade not in 0-3 range (" + grade + "), aborting this file");
+						continue;
+					}
 
-					feedFile(writer, inF, grade);
+					feedFile(writer, subFile, grade);
 					System.out.println();
 				}
+				argi++;
 			}
 		} else {
 			String input = "";

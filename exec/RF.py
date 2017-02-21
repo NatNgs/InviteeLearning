@@ -15,7 +15,7 @@ def main():
 
 
 	savetxt('Data/submission1.csv', rf.predict(test), delimiter=';', fmt='%f')
-	savetxt('Data/submission2.csv', rf.predict(test), delimiter=';', fmt='%f')
+	#savetxt('Data/submission2.csv', rf.predict(test), delimiter=';', fmt='%f')
 
 if __name__=="__main__":
 	main()
