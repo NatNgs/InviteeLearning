@@ -49,7 +49,8 @@ public class Main {
 		File outF = new File(outputFile);
 		FileWriter writer = null;
 		try {
-			System.out.print("Output file: " + outF.getCanonicalPath());
+			System.out.println("Output file: " + outF.getCanonicalPath());
+			System.out.println("");
 			writer = new FileWriter(outF);
 		} catch (IOException e) {
 			System.out.print("Output file: " + outF.getAbsolutePath());
