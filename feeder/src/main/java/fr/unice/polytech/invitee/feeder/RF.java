@@ -1,4 +1,4 @@
-package fr.unice.polytech.invitee.randomforest;
+package fr.unice.polytech.invitee.feeder;
 
 import quickml.data.AttributesMap;
 import quickml.data.PredictionMap;

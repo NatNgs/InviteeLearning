@@ -1,6 +1,5 @@
-package fr.unice.polytech.invitee.randomforest;
+package fr.unice.polytech.invitee.feeder;
 
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

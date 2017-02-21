@@ -1,4 +1,4 @@
-package fr.unice.polytech.invitee.randomforest;
+package fr.unice.polytech.invitee.feeder;
 
 /**
  * Created by nathael on 20/02/17.

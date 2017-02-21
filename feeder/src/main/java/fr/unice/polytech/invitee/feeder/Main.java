@@ -1,4 +1,4 @@
-package fr.unice.polytech.invitee.randomforest;
+package fr.unice.polytech.invitee.feeder;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -11,7 +11,6 @@ import java.util.Set;
  */
 public class Main {
 	private static final String thisPath = new File("").getAbsolutePath();
-	private static final String OUTPUT_SEPARATOR = ";";
 
 	/**
 	 * @param args (-c) outputFile [inputFile grade] ([inputFile grade])*
@@ -48,26 +47,15 @@ public class Main {
 		}
 
 		File outF = new File(outputFile);
-		OutputStreamWriter writer = null;
+		Writer writer;
 
 		try {
-			System.out.println("Output file: " + outF.getCanonicalPath());
-			System.out.println("");
-			if(_continue){
-				writer = new OutputStreamWriter(
-						new FileOutputStream(outputFile),
-						Charset.forName("UTF-8").newEncoder()
-				);
-			}
-			else{
-				writer = createFile(outF);
-			}
-
+			writer = createFile(_continue, outF);
 		} catch (IOException e) {
-			System.out.print("Output file: " + outF.getAbsolutePath());
-			System.err.println("Cannot open outputFile: "+e.getMessage());
+			System.err.println("Cannot open outputFile "+outF.getAbsolutePath()+": "+e.toString());
 			return;
 		}
+		System.out.println();
 
 		if(args.length > (_continue?2:1)) {
 			int argi = _continue?2:1;
@@ -97,9 +85,9 @@ public class Main {
 			}
 		} else {
 			String input = "";
+			Scanner sc = new Scanner(System.in);
 			do {
 				System.out.print("Input file or folder (or 'quit' to finish): "+thisPath+"/");
-				Scanner sc = new Scanner(System.in);
 				String inputName = sc.nextLine();
 				if(inputName.equalsIgnoreCase("quit"))
 					break;
@@ -114,24 +102,24 @@ public class Main {
 					continue;
 				}
 
-
-				for(File subFile : subFiles) {
-
-					try {
-						System.out.println("Treating "+subFile.getCanonicalPath());
-
-
-						feedFile(writer, subFile, grade);
-					} catch (NumberFormatException nfe) {
-						System.err.println("Grade is not an integer, aborting this inputFile (" + nfe.getMessage() + ")");
-					} catch (IOException e) {
-						System.err.println("Problem reading file: "+subFile.getAbsolutePath());
-						e.printStackTrace();
+				if(subFiles.isEmpty()) {
+					System.err.println("No file found with this name, or this is an Empty folder.");
+				} else {
+					for (File subFile : subFiles) {
+						try {
+							System.out.println("Treating " + subFile.getCanonicalPath());
+							feedFile(writer, subFile, grade);
+						} catch (NumberFormatException nfe) {
+							System.err.println("Grade is not an integer, aborting this inputFile (" + nfe.getMessage() + ")");
+						} catch (IOException e) {
+							System.err.println("Problem reading file: " + subFile.getAbsolutePath());
+							e.printStackTrace();
+						}
 					}
-					System.out.println();
 				}
-				sc.close();
-			} while(input.equalsIgnoreCase("stop"));
+				System.out.println();
+			} while(!input.equalsIgnoreCase("stop"));
+			sc.close();
 		}
 
 		try {
@@ -163,16 +151,14 @@ public class Main {
 
 	private static void feedFile(Writer outF, File inF, int grade) {
 		try {
-
 			DataSet dataSet = DataSetBuilder.extract(inF);
 			if (dataSet == null){
-				System.out.println("J'entre dans le if =(");
+				System.err.println("DataSet NULL !!");
 				return;
 			}
 
-
 			// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
-			outF.write(grade);
+			outF.write("class"+grade);
 
 			int mid = dataSet.size();
 			int lastquarter = mid * 3 / 4;
@@ -182,18 +168,13 @@ public class Main {
 			while(i<dataSet.size()) {
 				DataElement element = dataSet.get(i);
 
-				outF.write(OUTPUT_SEPARATOR);
-				outF.write(element.get(DataType.RotX));
-				outF.write(OUTPUT_SEPARATOR);
-				outF.write(element.get(DataType.RotY));
-				outF.write(OUTPUT_SEPARATOR);
-				outF.write(element.get(DataType.RotZ));
-				outF.write(OUTPUT_SEPARATOR);
-				outF.write(element.get(DataType.AccX));
-				outF.write(OUTPUT_SEPARATOR);
-				outF.write(element.get(DataType.AccY));
-				outF.write(OUTPUT_SEPARATOR);
-				outF.write(element.get(DataType.AccZ));
+				outF.write(";" + element.get(DataType.RotX));
+				outF.write(";" + element.get(DataType.RotY));
+				outF.write(";" + element.get(DataType.RotZ));
+				outF.write(";" + element.get(DataType.AccX));
+				outF.write(";" + element.get(DataType.AccY));
+				outF.write(";" + element.get(DataType.AccZ));
+				outF.flush();
 
 				if(i>lastquarter) {
 					i++;
@@ -205,27 +186,34 @@ public class Main {
 			}
 
 			outF.write("\n");
+			outF.flush();
 		} catch (IOException | NumberFormatException e) {
-			System.err.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
 
-	private static OutputStreamWriter createFile(File f) throws IOException {
-		if(f.exists())
-			f.delete();
-		f.createNewFile();
+	private static Writer createFile(boolean _continue, File f) throws IOException {
+		if(!_continue || !f.exists()) {
+			if (f.exists() && f.isFile())
+				//noinspection ResultOfMethodCallIgnored
+				f.delete();
 
-		OutputStreamWriter fw;
+			if(f.exists())
+				throw new IOException("Cannot delete: This is not a regular file");
 
-		fw = new OutputStreamWriter(
+			//noinspection ResultOfMethodCallIgnored
+			f.createNewFile();
+			System.out.println("Created new file "+f.getCanonicalPath());
+		}
+
+		Writer outF = new OutputStreamWriter(
 				new FileOutputStream(f),
 				Charset.forName("UTF-8").newEncoder()
 		);
 
 		// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
-		fw.write("grade");
-
+		outF.write("grade");
 
 		int total = 500;
 		int lastquarter = total * 3 / 4;
@@ -233,13 +221,13 @@ public class Main {
 
 		int i = 0;
 		while(i<total) {
-			fw.write(";rotX"+i);
-			fw.write(";rotY"+i);
-			fw.write(";rotZ"+i);
-			fw.write(";accX"+i);
-			fw.write(";accY"+i);
-			fw.write(";accZ"+i);
-			fw.flush();
+			outF.write(";rotX"+i);
+			outF.write(";rotY"+i);
+			outF.write(";rotZ"+i);
+			outF.write(";accX"+i);
+			outF.write(";accY"+i);
+			outF.write(";accZ"+i);
+			outF.flush();
 
 			if(i>lastquarter) {
 				i++;
@@ -249,8 +237,9 @@ public class Main {
 				i+=3;
 			}
 		}
-		fw.write("\n");
+		outF.write("\n");
+		outF.flush();
 
-		return fw;
+		return outF;
 	}
 }
