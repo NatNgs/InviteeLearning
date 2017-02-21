@@ -25,7 +25,7 @@ public class DataSetBuilder {
 				DataType.PosX,
 				DataType.PosY,
 				DataType.PosZ};
-	private static final int MAX_SET_SIZE = 500;
+	private static final int MAX_SET_SIZE = 50;
 
 	private final Stack<DataSet> dataSets = new Stack<>();
 
@@ -47,34 +47,26 @@ public class DataSetBuilder {
 	}
 
 	void setFile(File f) throws FileNotFoundException {
-		this.cur_fileScanner = new Scanner(f);
+		this.cur_file = f;
 	}
 
 	void initImport() throws CannotInitializeException {
 		try {
 			reset();
 			cur_fileScanner = new Scanner(cur_file);
-			while (cur_dataElementList.size() < MAX_SET_SIZE && hasNext())
-				importNext();
+			isInitialised = true;
 
-			if (cur_dataElementList.size() < MAX_SET_SIZE)
-				throw new CannotInitializeException();
 		} catch (FileNotFoundException e) {
 			throw new CannotInitializeException(e);
 		}
 
-		isInitialised = true;
 	}
 
 	boolean hasNext() {
-		if(!isInitialised)
-			throw new NotInitializedException();
 
 		return cur_fileScanner.hasNextLine();
 	}
 	DataSet importNext() {
-		if(!isInitialised)
-			throw new NotInitializedException();
 
 		while(true) {
 			if(!cur_fileScanner.hasNextLine())
@@ -131,7 +123,7 @@ public class DataSetBuilder {
 				}
 			}
 			return bestDataSet;
-		} catch (DataSetBuilder.CannotInitializeException ignored) {}
+		} catch (DataSetBuilder.CannotInitializeException e) {e.printStackTrace();}
 
 		return null;
 	}
