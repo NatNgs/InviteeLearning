@@ -159,7 +159,7 @@ public class Main {
 			}
 
 			// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
-			outF.write("class"+grade);
+			outF.write(""+grade);
 
 			int mid = dataSet.size();
 			int lastquarter = mid * 3 / 4;
