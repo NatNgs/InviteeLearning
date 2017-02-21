@@ -159,7 +159,10 @@ public class Main {
 			int lastquarter = mid * 3 / 4;
 			mid /= 2;
 
-			for (DataElement element : dataSet) {
+			int i = 0;
+			while(i<dataSet.size()) {
+				DataElement element = dataSet.get(i);
+
 				outF.write(OUTPUT_SEPARATOR);
 				outF.write(element.get(DataType.RotX));
 				outF.write(OUTPUT_SEPARATOR);
@@ -172,6 +175,14 @@ public class Main {
 				outF.write(element.get(DataType.AccY));
 				outF.write(OUTPUT_SEPARATOR);
 				outF.write(element.get(DataType.AccZ));
+
+				if(i>lastquarter) {
+					i++;
+				} else if(i > mid) {
+					i+=2;
+				} else {
+					i+=3;
+				}
 			}
 
 			outF.write("\n");
@@ -190,13 +201,28 @@ public class Main {
 
 		// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
 		fw.write("grade");
-		for (int i = 0; i < 500; i++) {
+
+
+		int total = 500;
+		int lastquarter = total * 3 / 4;
+		int mid = total / 2;
+
+		int i = 0;
+		while(i<total) {
 			fw.write(";rotX"+i);
 			fw.write(";rotY"+i);
 			fw.write(";rotZ"+i);
 			fw.write(";accX"+i);
 			fw.write(";accY"+i);
 			fw.write(";accZ"+i);
+
+			if(i>lastquarter) {
+				i++;
+			} else if(i > mid) {
+				i+=2;
+			} else {
+				i+=3;
+			}
 		}
 		fw.write("\n");
 

@@ -113,11 +113,11 @@ public class DataSetBuilder {
 
 	public static DataSet extract(File f) throws FileNotFoundException {
 		DataSetBuilder dsb = new DataSetBuilder();
-		DataSet bestDataSet = dsb.importNext();
 
 		try {
 			dsb.setFile(f);
 			dsb.initImport();
+			DataSet bestDataSet = dsb.importNext();
 
 			int bestDataSetAmplitude = bestDataSet.getAmplitude();
 
@@ -130,10 +130,9 @@ public class DataSetBuilder {
 					bestDataSetAmplitude = nextDataSetAmplitude;
 				}
 			}
-		} catch (DataSetBuilder.CannotInitializeException e) {
-			return null;
-		}
+			return bestDataSet;
+		} catch (DataSetBuilder.CannotInitializeException ignored) {}
 
-		return bestDataSet;
+		return null;
 	}
 }

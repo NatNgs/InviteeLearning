@@ -51,6 +51,10 @@ class DataSet implements Iterable<DataElement> {
 		return elements.iterator();
 	}
 
+	public DataElement get(int i) {
+		return elements.get(i);
+	}
+
 	public int size() {
 		return elements.size();
 	}
