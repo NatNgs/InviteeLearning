@@ -8,6 +8,7 @@
     <artifactId>randomforest</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+
     <repositories>
 
         <repository>
@@ -18,6 +19,7 @@
 
     </repositories>
 
+
     <build>
         <plugins>
             <plugin>
@@ -27,11 +29,11 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-
                 </configuration>
             </plugin>
 
             <plugin>
+                <!-- create jar: 'mvn clean compile assembly:single' -->
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <archive>
@@ -54,8 +56,5 @@
             <artifactId>quickml</artifactId>
             <version>0.10.15</version>
         </dependency>
-
-
     </dependencies>
-
 </project>

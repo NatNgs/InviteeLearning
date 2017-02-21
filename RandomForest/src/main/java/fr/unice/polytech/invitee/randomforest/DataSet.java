@@ -1,5 +1,6 @@
 package fr.unice.polytech.invitee.randomforest;
 
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -48,5 +49,9 @@ class DataSet implements Iterable<DataElement> {
 	@Override
 	public Iterator<DataElement> iterator() {
 		return elements.iterator();
+	}
+
+	public int size() {
+		return elements.size();
 	}
 }
