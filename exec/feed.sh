@@ -5,8 +5,8 @@ cd ../RandomForest
 mvn compile assembly:single
 
 # Copying 
-cd ../../
-cp RandomForest/randomforest-1.0-SNAPSHOT-jar-with-dependencies.jar exec/randomforest-feeder.jar
+cd ../
+cp RandomForest/target/randomforest-1.0-SNAPSHOT-jar-with-dependencies.jar exec/randomforest-feeder.jar
 
 # Executing
 cd exec/

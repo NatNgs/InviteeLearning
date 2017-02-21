@@ -239,6 +239,7 @@ public class Main {
 			fw.write(";accX"+i);
 			fw.write(";accY"+i);
 			fw.write(";accZ"+i);
+			fw.flush();
 
 			if(i>lastquarter) {
 				i++;
