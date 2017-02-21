@@ -22,7 +22,7 @@ public class Main {
 	 * 	    or '2' (bottle cut more than half)
 	 * 	    or '3' (bottle cut in 2 distinct parts)
 	 */
-	public static int main(String[] args) {
+	public static void main(String[] args) {
 		boolean _continue = false;
 
 		String outputFile;
@@ -34,7 +34,7 @@ public class Main {
 					outputFile = args[0];
 				else {
 					System.err.println("No output file defined.");
-					return -1;
+					return;
 				}
 			}
 		} else {
@@ -54,7 +54,7 @@ public class Main {
 		} catch (IOException e) {
 			System.out.print("Output file: " + outF.getAbsolutePath());
 			System.err.println("Cannot open outputFile: "+e.getMessage());
-			return -1;
+			return;
 		}
 
 		if(args.length > (_continue?2:1)) {
@@ -123,10 +123,7 @@ public class Main {
 			writer.close();
 		} catch (IOException e) {
 			System.err.println("Error on closing outputFile: "+e.getMessage());
-			return -1;
 		}
-
-		return 0;
 	}
 
 
@@ -157,6 +154,11 @@ public class Main {
 
 			// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
 			outF.write(grade);
+
+			int mid = dataSet.size();
+			int lastquarter = mid * 3 / 4;
+			mid /= 2;
+
 			for (DataElement element : dataSet) {
 				outF.write(OUTPUT_SEPARATOR);
 				outF.write(element.get(DataType.RotX));
