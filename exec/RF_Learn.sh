@@ -4,4 +4,4 @@ java -jar feeder.jar Data/donnees.csv Data/LearnCuts/0/ 0 Data/LearnCuts/1/ 1 Da
 
 java -jar feeder.jar Data/test.csv Data/TestsCuts/0/ 0 Data/TestsCuts/1/ 1 Data/TestsCuts/2/ 2 Data/TestsCuts/3/ 3
 
-java -jar feeder.jar -u Data/unknown.csv Data/UnknownCuts/
+python RF_Learn.py
