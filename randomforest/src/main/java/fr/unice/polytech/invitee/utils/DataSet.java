@@ -1,4 +1,4 @@
-package fr.unice.polytech.invitee.feeder;
+package fr.unice.polytech.invitee.utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by nathael on 20/02/17.
  */
-class DataSet implements Iterable<DataElement> {
+public class DataSet implements Iterable<DataElement> {
 	private final List<DataElement> elements = new ArrayList<>();
 
 	DataSet(List<DataElement> list) {

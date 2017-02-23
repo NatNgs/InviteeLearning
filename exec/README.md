@@ -2,7 +2,7 @@ Toutes les opérations sont a effectuer depuis le dossier .../exec/
 (dans lequel devrait se trouver ce fichier README.md)
 
 
-Préparation (à faire une fois)
+Préparation
 
 	1: Compiler le normaliseur Java et créer l'arborescence de dossiers
 			$ ./compileAll.sh
@@ -14,17 +14,6 @@ Préparation (à faire une fois)
 
 	3: Executer le script d'apprentissage de l'algorithme de prédiction
 			$ ./RF_Learn.sh
-
-
-
-Utilisation (à faire autant de fois que nécessaire, tant que la préparation a été faite)
-
-	1: Ajouter dans le dossier Data/UnknownCuts les logs des coupes dont la qualité est inconnue
-	
-	2: Executer le script de prédiction
-			$ ./RF_Predict.sh
-			
-	3: Un dossier Data/PredictionResults apparaîtra, et contiendra les résultats des prédictions
 
 
 
@@ -61,22 +50,15 @@ Détail de l'arborescence des fichiers
   |  |  |--+ 2			Dossier contenant plusieurs fichiers de logs de coupes de qualité 2, utilisés pour vérifier la qualité de l'apprentissage
   |  |  |--+ 3			Dossier contenant plusieurs fichiers de logs de coupes de qualité 3, utilisés pour vérifier la qualité de l'apprentissage
   |  |  |
-  |  | 
-  |  |--+ UnknownCuts         	Dossier contenant plusieurs fichiers de logs de coupes dont on veut prédire la qualité
-  |  | 
-  |  |--+ PredictionsResults  	Dossier contenant des fichiers de même noms que dans UnknownCuts, présentant les résultats des analyses 
   |  |
   |  |--- learn.csv           	Fichier généré par 'RF_Learn.sh' et utilisé par 'RF_Learn.py' pour nourir la RandomForest
   |  |--- test.csv            	Fichier généré par 'RF_Learn.sh' et utilisé par 'RF_Learn.py' pour tester la RandomForest
-  |  |--- unknown.csv         	Fichier généré par 'RF_Predict.sh' et utilisé par 'RF_Predict.py' pour prédire les valeurs
-  |  |--- predictions.csv     	Fichier généré par 'RF_Predict.py' détaillant les prédictions des fichiers de coupes de qualité inconnues
   |  |--- randomForestSave.pkl	Fichier généré par 'RF_Learn.py', contenant une sauvegarde de la RandomForest
   |  |
   |
+  |--- clean.sh      	Script pour effacer tous les fichiers automatiquement générés (annule le compileAll et le RF_Learn)
   |--- compileAll.sh 	Script pour générer 'feeder.jar' et l'arborescence de dossiers
   |--- RF_Learn.sh   	Script pour préparer et executer le programme RF_Learn.py
-  |--- RF_Predict.sh 	Script pour préparer et executer le programme RF_Predict.py
   |--- RF_Learn.py   	Programme pour générer et nourir la RandomForest, puis qui la sauvegarde dans 'randomForestSave.pkl'
-  |--- RF_Predict.py 	Programme utilisant 'randomForestSave.pkl' et 'unknown.csv' pour prédire les valeurs des coupes de qualité inconnues
   |--- README.md     	Ce fichier
   |

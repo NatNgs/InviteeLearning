@@ -1,4 +1,4 @@
-package fr.unice.polytech.invitee.feeder;
+package fr.unice.polytech.invitee.utils;
 
 /**
  * Created by nathael on 20/02/17.

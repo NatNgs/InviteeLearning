@@ -1,5 +1,7 @@
 package fr.unice.polytech.invitee.feeder;
 
+import fr.unice.polytech.invitee.utils.*;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -7,7 +9,7 @@ import java.util.*;
 /**
  * Created by nathael on 20/02/17.
  */
-public class Main {
+public class Feeder {
 	private static final String thisPath = new File("").getAbsolutePath();
 
 	private void mainWithPrompt() {
@@ -19,14 +21,11 @@ public class Main {
 		System.out.print("Continue feeding if possible (if not will create new output file) ? ['y'/'N']: ");
 		boolean _continue = (sc.nextLine().charAt(0)+"").equalsIgnoreCase("y");
 
-		System.out.print("Set the grades in output file ? ['Y'/'n']: ");
-		boolean _unknownGrades = (sc.nextLine().charAt(0)+"").equalsIgnoreCase("y");
-
 		File outF = new File(outputFile);
 		Writer writer;
 
 		try {
-			writer = createFile(_continue, _unknownGrades, outF);
+			writer = createFile(_continue, outF);
 		} catch (IOException e) {
 			System.err.println("Cannot open outputFile "+outF.getAbsolutePath()+": "+e.toString());
 			return;
@@ -41,18 +40,14 @@ public class Main {
 				break;
 
 			File inF = new File(inputName);
-			Set<File> subFiles = listSubFiles(inF);
+			Set<File> subFiles = Utils.listSubFiles(inF);
 
-			int grade = -1;
+			System.out.print("Grade: ");
+			int grade = Integer.parseInt(sc.nextLine());
 
-			if(!_unknownGrades) {
-				System.out.print("Grade: ");
-				grade = Integer.parseInt(sc.nextLine());
-
-				if (grade < 0 || grade > 3) {
-					System.err.println("Grade not in 0-3 range (" + grade + "), aborting this inputFile");
-					continue;
-				}
+			if (grade < 0 || grade > 3) {
+				System.err.println("Grade not in 0-3 range (" + grade + "), aborting this inputFile");
+				continue;
 			}
 
 			if(subFiles.isEmpty()) {
@@ -81,14 +76,13 @@ public class Main {
 		sc.close();
 	}
 
-	private void mainWithArgs(List<String> args, boolean _continue, boolean _unknownGrades, boolean _help) {
+	private void mainWithArgs(List<String> args, boolean _continue, boolean _help) {
 		if(_help || args.size() < 1) {
 			System.out.println(
-					"Usage:   $ feeder (-c|-h|-u)* path/outputFile.csv ([inputFile|inputFolder] grade)*\n"
+					"Usage:   $ feeder (-c|-h)* path/outputFile.csv ([inputFile|inputFolder] grade)*\n"
 					+ "or just: $ feeder\n\n"
 					+ "-c (-continue):\n\t\tContinue feeding an existing output file if possible.\n"
-					+ "-h (-help):\n\t\tPrint this help\n"
-					+ "-u (-unknownGrades):\n\t\tDo not specify grades in output file.");
+					+ "-h (-help):\n\t\tPrint this help");
 			return;
 		}
 
@@ -98,31 +92,28 @@ public class Main {
 		Writer writer;
 
 		try {
-			writer = createFile(_continue, _unknownGrades, outF);
+			writer = createFile(_continue, outF);
 		} catch (IOException e) {
 			System.err.println("Cannot open outputFile "+outF.getAbsolutePath()+": "+e.toString());
 			return;
 		}
 		System.out.println();
 
-		while(args.size() >= 2 || (_unknownGrades && args.size() >= 1)) {
+		while(args.size() >= 2) {
 			String inputFile = args.remove(0);
-			int grade = -1;
+			int grade = Integer.parseInt(args.remove(0));
 
-			if(!_unknownGrades)
-				grade = Integer.parseInt(args.remove(0));
-
-			for(File subFile : listSubFiles(new File(inputFile))) {
+			for(File subFile : Utils.listSubFiles(new File(inputFile))) {
 				try {
 					System.out.println("Input file: " + subFile.getCanonicalPath());
-					if(_unknownGrades) {
-						feedFile(writer, subFile, grade);
-					} else if (grade < 0 || grade > 3) {
+
+					if (grade < 0 || grade > 3) {
 						System.err.println("Grade not in 0-3 range (" + grade + "), aborting this file");
 					} else {
 						System.out.println("Grade: " + grade);
 						feedFile(writer, subFile, grade);
 					}
+
 				} catch (IOException e) {
 					System.err.println("Input file error: " + subFile.getAbsolutePath()+" ("+e.toString()+")");
 				}
@@ -149,47 +140,23 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		if(args.length == 0)
-			new Main().mainWithPrompt();
+			new Feeder().mainWithPrompt();
 		else {
 			List<String> argList = new ArrayList<>();
 			boolean _c = false;
-			boolean _u = false;
 			for(String s : args) {
 				if(s.startsWith("-h")) {
-					new Main().mainWithArgs(argList, false, false, true);
+					new Feeder().mainWithArgs(argList, false, true);
 					return;
 				} else if(s.startsWith("-c")) {
 					_c = true;
-				} else if(s.startsWith("-u")) {
-					_u = true;
 				} else {
 					argList.add(s);
 				}
 			}
 
-			new Main().mainWithArgs(argList, _c, _u, false);
+			new Feeder().mainWithArgs(argList, _c, false);
 		}
-	}
-
-
-
-	private static Set<File> listSubFiles(File in) {
-		final Set<File> fileSet = new HashSet<>();
-
-		if(in.isDirectory()) {
-			File[] subFiles = in.listFiles();
-
-			if(subFiles != null) {
-				for (File f : subFiles) {
-					if (f != in)
-						fileSet.addAll(listSubFiles(f));
-				}
-			}
-		} else if(in.isFile() && in.canRead()) {
-			fileSet.add(in);
-		}
-
-		return fileSet;
 	}
 
 	private static void feedFile(Writer outF, File inF, int grade) {
@@ -201,8 +168,7 @@ public class Main {
 			}
 
 			// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
-			if(grade >= 0 && grade <= 3)
-				outF.write(grade+";");
+			outF.write(String.valueOf(grade));
 
 			int mid = dataSet.size();
 			int lastQuarter = mid * 3 / 4;
@@ -212,10 +178,7 @@ public class Main {
 			while(i<dataSet.size()) {
 				DataElement element = dataSet.get(i);
 
-				if(i!=0) // ignore first
-					outF.write(";");
-
-				outF.write(""+element.get(DataType.RotX));
+				outF.write(";" + element.get(DataType.RotX));
 				outF.write(";" + element.get(DataType.RotY));
 				outF.write(";" + element.get(DataType.RotZ));
 				outF.write(";" + element.get(DataType.AccX));
@@ -239,7 +202,7 @@ public class Main {
 		}
 	}
 
-	private static Writer createFile(boolean _continue, boolean _unknownGrades, File f) throws IOException {
+	private static Writer createFile(boolean _continue, File f) throws IOException {
 		if(!_continue || !f.exists()) {
 			if (f.exists() && f.isFile())
 				//noinspection ResultOfMethodCallIgnored
@@ -259,8 +222,7 @@ public class Main {
 		);
 
 		// "grade;rotX0;rotY0;rotZ0;accX0;accY0;accZ0;...;accZ499"
-		if(!_unknownGrades)
-			outF.write("grade;");
+		outF.write("grade");
 
 		int total = 500;
 		int lastQuarter = total * 3 / 4;
@@ -268,7 +230,7 @@ public class Main {
 
 		int i = 0;
 		while(i<total) {
-			outF.write((i!=0?";rotX":"rotX")+i); // ignore first ';'
+			outF.write(";rotX"+i);
 			outF.write(";rotY"+i);
 			outF.write(";rotZ"+i);
 			outF.write(";accX"+i);

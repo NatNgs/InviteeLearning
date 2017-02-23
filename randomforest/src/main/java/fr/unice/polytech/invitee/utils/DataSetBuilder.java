@@ -1,11 +1,10 @@
-package fr.unice.polytech.invitee.feeder;
+package fr.unice.polytech.invitee.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Stack;
 
 /**
  * Created by nathael on 20/02/17.
@@ -66,7 +65,7 @@ public class DataSetBuilder {
 					cur_dataElementList.remove(0);
 					return ret;
 				}
-			} catch (NumberFormatException ignored) {} // ignore lines that does not math the correct format (header line & comments)
+			} catch (NumberFormatException | ArrayIndexOutOfBoundsException ignored) {} // ignore lines that does not math the correct format (header line & comments)
 		}
 	}
 	public static DataSet extract(File f) throws FileNotFoundException {
